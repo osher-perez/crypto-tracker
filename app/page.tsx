@@ -1,3 +1,4 @@
+import CoinCard from "./components/CoinCard";
 // הגדרת המבנה של מטבע קריפטו
 interface Coin {
   id: string;
@@ -24,19 +25,13 @@ export default function Home() {
 
       <div className="mt-10 grid gap-4">
         {MOCK_COINS.map((coin) => (
-          <div
+          <CoinCard
             key={coin.id}
-            className="p-4 border border-slate-700 rounded-lg bg-slate-800 flex justify-between w-80"
-          >
-            <span>
-              {coin.name} ({coin.symbol})
-            </span>
-            <span
-              className={coin.change24h > 0 ? "text-green-400" : "text-red-400"}
-            >
-              {coin.change24h}%
-            </span>
-          </div>
+            name={coin.name}
+            symbol={coin.symbol}
+            price={coin.price}
+            change={coin.change24h}
+          />
         ))}
       </div>
     </main>
