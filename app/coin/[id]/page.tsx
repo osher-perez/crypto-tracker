@@ -1,66 +1,72 @@
+/* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
-import { use } from "react";
 
-// 1. הגדרת המבנה של נתוני המטבע (Interface) - לצורך ה-Miro והסדר בראש
-interface CoinDetail {
-  id: string;
-  name: string;
-  symbol: string;
-  description: { en: string };
-  market_data: {
-    current_price: { usd: number };
-    price_change_percentage_24h: number;
-    market_cap: { usd: number };
-  };
-  image: { large: string };
-}
-
-async function getCoinData(id: string): Promise<CoinDetail> { 
-  const res = await fetch(`https://api.coingecko.com/api/v3/coins/${id}`);
-  if (!res.ok) throw new Error("Failed to fetch coin data");
+async function getCoinData(id: string) {
+  const res = await fetch(`https://api.coingecko.com/api/v3/coins/${id}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`, 
+    { next: { revalidate: 60 } } // בונוס: רענון נתונים כל דקה
+  );
+  if (!res.ok) return null;
   return res.json();
 }
 
-export default function CoinDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  // חילוץ ה-ID מה-URL
-  const { id } = use(params);
+export default async function CoinDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  // תיקון השגיאה: מחלצים את ה-id בעזרת await פשוט במקום Hook
+  const { id } = await params; 
+  const coin = await getCoinData(id);
+
+  if (!coin) {
+    return (
+      <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center">
+        <p className="mb-4">Coin not found.</p>
+        <Link href="/" className="text-blue-400 underline">Back to Home</Link>
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 text-white">
-      {/* כפתור חזרה - חשוב לחוויית המשתמש */}
-      <Link href="/" className="text-blue-400 hover:underline mb-8 block">
-        ← חזרה לרשימה
-      </Link>
+    <main className="min-h-screen bg-slate-900 text-white p-8 font-sans">
+      <div className="max-w-4xl mx-auto">
+        <Link href="/" className="text-blue-400 hover:text-blue-300 mb-8 inline-block transition-colors font-medium">
+          ← Back to Market Overview
+        </Link>
 
-      <div className="bg-slate-800 rounded-2xl p-8 shadow-xl border border-slate-700">
-        <div className="flex items-center gap-4 mb-6">
-          <h1 className="text-4xl font-bold capitalize">{id} Details</h1>
-          <span className="bg-blue-600 text-xs px-2 py-1 rounded uppercase tracking-wider">
-            Live Data
-          </span>
-        </div>
-
-        {/* כאן יבוא התוכן האמיתי אחרי ה-Fetch */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="space-y-4">
-             <div className="p-4 bg-slate-900 rounded-lg border border-slate-700">
-                <p className="text-slate-400 text-sm">Current Price</p>
-                <p className="text-2xl font-mono">$ --,---</p>
-             </div>
-             {/* כאן התיבה האפורה מה-Miro: המקום לגרף */}
-             <div className="h-64 bg-slate-900 rounded-lg border border-dashed border-slate-600 flex items-center justify-center text-slate-500">
-                [ כאן יופיע הגרף בעתיד - Price Chart Placeholder ]
-             </div>
+        <div className="bg-slate-800 border border-slate-700 rounded-3xl p-10 shadow-2xl">
+          <div className="flex items-center gap-6 mb-10">
+            <img src={coin.image.large} alt={coin.name} className="w-16 h-16 shadow-lg rounded-full" />
+            <div>
+              <h1 className="text-5xl font-black capitalize tracking-tight">
+                {coin.name} <span className="text-slate-500 text-2xl uppercase">{coin.symbol}</span>
+              </h1>
+            </div>
           </div>
 
-          <div className="space-y-4 text-slate-300">
-             <h3 className="text-xl font-semibold text-white">About {id}</h3>
-             <p className="leading-relaxed">
-                כאן יופיע תיאור המטבע שנמשוך מה-API. בנינו את התשתית כך שנוכל להציג כאן טקסט ארוך ומפורט.
-             </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div className="space-y-6">
+              <div className="bg-slate-900/80 p-8 rounded-2xl border border-slate-700 backdrop-blur-sm">
+                <p className="text-slate-400 text-xs uppercase tracking-[0.2em] mb-2 font-bold">Current Price (USD)</p>
+                <p className="text-4xl font-mono font-bold text-emerald-400">
+                  ${coin.market_data.current_price.usd.toLocaleString()}
+                </p>
+                <div className={`mt-2 text-sm font-bold ${coin.market_data.price_change_percentage_24h >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                   {coin.market_data.price_change_percentage_24h.toFixed(2)}% (24h)
+                </div>
+              </div>
+              
+              <div className="h-64 bg-slate-900/50 rounded-2xl border-2 border-dashed border-slate-700 flex flex-col items-center justify-center text-slate-500">
+                <span className="text-sm font-medium italic">Price Chart Placeholder</span>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-xl font-bold border-b border-slate-700 pb-2">About {coin.name}</h3>
+              <div 
+                className="text-slate-300 leading-relaxed text-sm max-h-75 overflow-y-auto pr-4"
+                dangerouslySetInnerHTML={{ __html: coin.description.en || "No description available." }}
+              />
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
