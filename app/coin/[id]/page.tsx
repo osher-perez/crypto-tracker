@@ -1,5 +1,5 @@
-/* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
+import PriceChart from "@/components/PriceChart";
 
 async function getCoinData(id: string) {
   const res = await fetch(
@@ -74,10 +74,8 @@ export default async function CoinDetailPage({
                 </div>
               </div>
 
-              <div className="h-64 bg-slate-900/50 rounded-2xl border-2 border-dashed border-slate-700 flex flex-col items-center justify-center text-slate-500">
-                <span className="text-sm font-medium italic">
-                  Price Chart Placeholder
-                </span>
+              <div className="h-64 bg-slate-900/50 rounded-2xl border border-slate-700 p-4">
+                <PriceChart />
               </div>
             </div>
 
