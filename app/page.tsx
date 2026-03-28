@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import CoinList from "./components/CoinList";
+import CoinList from "@/components/CoinList";
 
 export default function Home() {
   const [coins, setCoins] = useState([]);
