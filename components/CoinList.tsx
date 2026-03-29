@@ -37,7 +37,7 @@ export default function CoinList({ coins }: { coins: Coin[] }) {
       <div className="grid gap-4 w-80">
         {filteredCoins.length === 0 ? (
           <div className="text-center py-10 text-slate-500 italic">
-            No coins found for "{search}"
+            {`No coins found for "${search}"`}
           </div>
         ) : (
           filteredCoins.map((coin) => (
