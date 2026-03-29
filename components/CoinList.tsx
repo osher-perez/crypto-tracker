@@ -9,9 +9,10 @@ interface Coin {
     symbol: string;
     current_price: number;
     price_change_percentage_24h: number;
+    image: string;
 }
 
-export default function CointList({ coins }: { coins: Coin[] }) {
+export default function CoinList({ coins }: { coins: Coin[] }) {
     const [search, setSearch] = useState('');
 
     const filteredCoins = coins.filter(coin =>
@@ -31,8 +32,8 @@ export default function CointList({ coins }: { coins: Coin[] }) {
                 />
             </div>
 
-            {/* רשימת המטבעות או הודעת שגיאה */}
-            <div className="grid gap-4 w-80"> {/* הוספתי w-80 גם כאן כדי שיהיה בקו אחד עם החיפוש */}
+            {/* רשימת המטבעות או הודעת "לא נמצא" */}
+            <div className="grid gap-4 w-80">
                 {filteredCoins.length === 0 ? (
                     <div className="text-center py-10 text-slate-500 italic">
                         No coins found for "{search}"
@@ -49,6 +50,7 @@ export default function CointList({ coins }: { coins: Coin[] }) {
                                 symbol={coin.symbol.toUpperCase()}
                                 price={coin.current_price}
                                 change={coin.price_change_percentage_24h}
+                                image={coin.image}
                             />
                         </Link>
                     ))
