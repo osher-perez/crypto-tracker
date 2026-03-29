@@ -1,22 +1,30 @@
 "use client";
 import { useEffect, useState } from "react";
 import CoinList from "@/components/CoinList";
-
+import { COINGECKO_API_URL } from '@/utils/constants';
 export default function Home() {
   const [coins, setCoins] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchCoins = async () => {
-      const response = await fetch(
-        "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1",
-      );
+  const fetchCoins = async () => {
+    try {
+      // 2. משתמשים במשתנה במקום במחרוזת ידנית
+      const response = await fetch(COINGECKO_API_URL);
+      
+      if (!response.ok) throw new Error('Failed to fetch data');
+
       const data = await response.json();
       setCoins(data);
+    } catch (error) {
+      console.error("Error fetching coins:", error);
+    } finally {
       setLoading(false);
-    };
-    fetchCoins();
-  }, []);
+    }
+  };
+
+  fetchCoins();
+}, []);
 
   return (
     <main className="min-h-screen bg-slate-900 text-white">
