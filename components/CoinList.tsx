@@ -14,12 +14,26 @@ interface Coin {
 
 export default function CoinList({ coins }: { coins: Coin[] }) {
   const [search, setSearch] = useState("");
-
+  const [sortBy , setSortBy] = useState<string>("market_cap");
   const filteredCoins = coins.filter(
     (coin) =>
       coin.name.toLowerCase().includes(search.toLowerCase()) ||
       coin.symbol.toLowerCase().includes(search.toLowerCase()),
   );
+
+  const sortedCoins = [...filteredCoins].sort((a, b) => {
+  if (sortBy === "price_high") {
+    return b.current_price - a.current_price;
+  }
+  if (sortBy === "change") {
+    return b.price_change_percentage_24h - a.price_change_percentage_24h;
+  }
+  // אם שום דבר לא נבחר, נשאר עם הסדר המקורי (Market Cap)
+  return 0; 
+});
+
+  
+  
 
   return (
     <div className="flex flex-col items-center w-full">
@@ -32,6 +46,27 @@ export default function CoinList({ coins }: { coins: Coin[] }) {
           onChange={(e) => setSearch(e.target.value)}
         />
       </div>
+      <div className="flex gap-2 mb-6 justify-center">
+  <button 
+    onClick={() => setSortBy("market_cap")}
+    className={`px-4 py-2 rounded-lg ${sortBy === "market_cap" ? "bg-blue-600" : "bg-slate-700"}`}
+  >
+    דירוג
+  </button>
+  
+  <button 
+    onClick={() => setSortBy("price_high")}
+    className={`px-4 py-2 rounded-lg ${sortBy === "price_high" ? "bg-blue-600" : "bg-slate-700"}`}
+  >
+    מחיר (גבוה)
+  </button>
+<button 
+onClick={() => setSortBy("change")}
+    className={`px-4 py-2 rounded-lg ${sortBy === "change" ? "bg-blue-600" : "bg-slate-700"}`}>
+      % שינוי (יומי)
+    </button>
+  {/* תוסיף כאן עוד כפתור ל-"שינוי ב-24 שעות" */}
+</div>
 
       {/* רשימת המטבעות או הודעת "לא נמצא" */}
       <div className="grid gap-4 w-80">
@@ -40,7 +75,7 @@ export default function CoinList({ coins }: { coins: Coin[] }) {
             {`No coins found for "${search}"`}
           </div>
         ) : (
-          filteredCoins.map((coin) => (
+          sortedCoins.map((coin) => (
             <Link
               href={`/coin/${coin.id}`}
               key={coin.id}
