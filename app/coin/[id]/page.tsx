@@ -1,13 +1,31 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 
+// פונקציה למשיכת נתונים כלליים על המטבע
 async function getCoinData(id: string) {
   const res = await fetch(
     `https://api.coingecko.com/api/v3/coins/${id}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`,
-    { next: { revalidate: 60 } }, // בונוס: רענון נתונים כל דקה
+    { next: { revalidate: 60 } }
   );
   if (!res.ok) return null;
   return res.json();
+}
+
+// פונקציה חדשה: משיכת היסטוריה של 7 ימים לניתוח
+async function getHistory(id: string) {
+  try {
+    const res = await fetch(
+      `https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=usd&days=7&interval=daily`,
+      { next: { revalidate: 3600 } } // היסטוריה מתעדכנת פחות בתכיפות
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    // מחלצים רק את מחירי הסגירה היומיים
+    return data.prices.map((p: [number, number]) => p[1]);
+  } catch (error) {
+    console.error("History fetch failed:", error);
+    return null;
+  }
 }
 
 export default async function CoinDetailPage({
@@ -15,19 +33,34 @@ export default async function CoinDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  // תיקון השגיאה: מחלצים את ה-id בעזרת await פשוט במקום Hook
   const { id } = await params;
-  const coin = await getCoinData(id);
+  
+  // הרצת שתי הבקשות במקביל לביצועים טובים יותר
+  const [coin, history] = await Promise.all([
+    getCoinData(id),
+    getHistory(id)
+  ]);
 
   if (!coin) {
     return (
       <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center">
         <p className="mb-4">Coin not found.</p>
-        <Link href="/" className="text-blue-400 underline">
-          Back to Home
-        </Link>
+        <Link href="/" className="text-blue-400 underline">Back to Home</Link>
       </div>
     );
+  }
+
+  // לוגיקת ניתוח נתונים (The "Brain")
+  const currentPrice = coin.market_data.current_price.usd;
+  let recommendation = "Neutral";
+  let diffPercent = 0;
+
+  if (history && history.length > 0) {
+    const avgPrice = history.reduce((a: number, b: number) => a + b, 0) / history.length;
+    diffPercent = ((currentPrice - avgPrice) / avgPrice) * 100;
+    
+    if (diffPercent < -5) recommendation = "Buy Opportunity";
+    else if (diffPercent > 5) recommendation = "Take Profit / High Risk";
   }
 
   return (
@@ -59,6 +92,7 @@ export default async function CoinDetailPage({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
             <div className="space-y-6">
+              {/* כרטיס מחיר נוכחי */}
               <div className="bg-slate-900/80 p-8 rounded-2xl border border-slate-700 backdrop-blur-sm">
                 <p className="text-slate-400 text-xs uppercase tracking-[0.2em] mb-2 font-bold">
                   Current Price (USD)
@@ -69,24 +103,33 @@ export default async function CoinDetailPage({
                 <div
                   className={`mt-2 text-sm font-bold ${coin.market_data.price_change_percentage_24h >= 0 ? "text-emerald-500" : "text-rose-500"}`}
                 >
-                  {coin.market_data.price_change_percentage_24h.toFixed(2)}%
-                  (24h)
+                  {coin.market_data.price_change_percentage_24h.toFixed(2)}% (24h)
                 </div>
               </div>
 
-              <div className="h-64 bg-slate-900/50 rounded-2xl border-2 border-dashed border-slate-700 flex flex-col items-center justify-center text-slate-500">
-                <span className="text-sm font-medium italic">
-                  Price Chart Placeholder
-                </span>
+              {/* התיבה החדשה: ניתוח החלטות (Analysis Box) */}
+              <div className="bg-slate-900/50 p-8 rounded-2xl border-2 border-slate-700 flex flex-col items-center justify-center text-center">
+                <p className="text-slate-500 text-xs uppercase tracking-widest mb-3 font-bold">
+                  7-Day Trend Analysis
+                </p>
+                <div className={`text-2xl font-black mb-2 ${diffPercent < -5 ? "text-emerald-400" : "text-amber-400"}`}>
+                  {recommendation}
+                </div>
+                <p className="text-slate-400 text-sm leading-relaxed">
+                  Price is <span className="text-white font-bold">{Math.abs(diffPercent).toFixed(1)}%</span> 
+                  {diffPercent < 0 ? " lower " : " higher "} 
+                  than the weekly average.
+                </p>
               </div>
             </div>
 
+            {/* תיאור המטבע */}
             <div className="space-y-4">
               <h3 className="text-xl font-bold border-b border-slate-700 pb-2">
                 About {coin.name}
               </h3>
               <div
-                className="text-slate-300 leading-relaxed text-sm max-h-100 overflow-y-auto pr-4 custom-scrollbar"
+                className="text-slate-300 leading-relaxed text-sm max-h-80 overflow-y-auto pr-4 custom-scrollbar"
                 dangerouslySetInnerHTML={{
                   __html: coin.description.en || "No description available.",
                 }}
