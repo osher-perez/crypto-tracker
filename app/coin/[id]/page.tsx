@@ -5,7 +5,7 @@ import Link from "next/link";
 async function getCoinData(id: string) {
   const res = await fetch(
     `https://api.coingecko.com/api/v3/coins/${id}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`,
-    { next: { revalidate: 60 } }
+    { next: { revalidate: 60 } },
   );
   if (!res.ok) return null;
   return res.json();
@@ -16,7 +16,7 @@ async function getHistory(id: string) {
   try {
     const res = await fetch(
       `https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=usd&days=7&interval=daily`,
-      { next: { revalidate: 3600 } } // היסטוריה מתעדכנת פחות בתכיפות
+      { next: { revalidate: 3600 } }, // היסטוריה מתעדכנת פחות בתכיפות
     );
     if (!res.ok) return null;
     const data = await res.json();
@@ -34,18 +34,17 @@ export default async function CoinDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  
+
   // הרצת שתי הבקשות במקביל לביצועים טובים יותר
-  const [coin, history] = await Promise.all([
-    getCoinData(id),
-    getHistory(id)
-  ]);
+  const [coin, history] = await Promise.all([getCoinData(id), getHistory(id)]);
 
   if (!coin) {
     return (
       <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center">
         <p className="mb-4">Coin not found.</p>
-        <Link href="/" className="text-blue-400 underline">Back to Home</Link>
+        <Link href="/" className="text-blue-400 underline">
+          Back to Home
+        </Link>
       </div>
     );
   }
@@ -54,13 +53,14 @@ export default async function CoinDetailPage({
   const currentPrice = coin.market_data.current_price.usd;
   let recommendation = "Neutral";
   let diffPercent = 0;
-  const amountToConvert = 1; 
+  const amountToConvert = 1;
   const convertedValue = amountToConvert * currentPrice;
-  
+
   if (history && history.length > 0) {
-    const avgPrice = history.reduce((a: number, b: number) => a + b, 0) / history.length;
+    const avgPrice =
+      history.reduce((a: number, b: number) => a + b, 0) / history.length;
     diffPercent = ((currentPrice - avgPrice) / avgPrice) * 100;
-    
+
     if (diffPercent < -5) recommendation = "Buy Opportunity";
     else if (diffPercent > 5) recommendation = "Take Profit / High Risk";
   }
@@ -105,7 +105,8 @@ export default async function CoinDetailPage({
                 <div
                   className={`mt-2 text-sm font-bold ${coin.market_data.price_change_percentage_24h >= 0 ? "text-emerald-500" : "text-rose-500"}`}
                 >
-                  {coin.market_data.price_change_percentage_24h.toFixed(2)}% (24h)
+                  {coin.market_data.price_change_percentage_24h.toFixed(2)}%
+                  (24h)
                 </div>
               </div>
 
@@ -114,12 +115,29 @@ export default async function CoinDetailPage({
                 <p className="text-slate-500 text-xs uppercase tracking-widest mb-3 font-bold">
                   7-Day Trend Analysis
                 </p>
-                <div className={`text-2xl font-black mb-2 ${diffPercent < -5 ? "text-emerald-400" : "text-amber-400"}`}>
+                <div
+                  className={`text-2xl font-black mb-2 ${diffPercent < -5 ? "text-emerald-400" : "text-amber-400"}`}
+                >
                   {recommendation}
                 </div>
+                <div className="mt-6 p-4 bg-slate-800/50 rounded-xl border border-slate-700">
+                  <h3 className="text-sm font-medium text-slate-400 mb-2">
+                    Quick Converter
+                    <input type="number" defaultValue={amountToConvert}  className= "w-24 bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white mr-2"/>
+                  </h3>
+                  <p className="text-xl font-mono text-white">
+                    {amountToConvert} {coin.symbol.toUpperCase()} =
+                    <span className="text-blue-400 ml-2">
+                      ${convertedValue.toLocaleString()}
+                    </span>
+                  </p>
+                </div>
                 <p className="text-slate-400 text-sm leading-relaxed">
-                  Price is <span className="text-white font-bold">{Math.abs(diffPercent).toFixed(1)}%</span> 
-                  {diffPercent < 0 ? " lower " : " higher "} 
+                  Price is{" "}
+                  <span className="text-white font-bold">
+                    {Math.abs(diffPercent).toFixed(1)}%
+                  </span>
+                  {diffPercent < 0 ? " lower " : " higher "}
                   than the weekly average.
                 </p>
               </div>
