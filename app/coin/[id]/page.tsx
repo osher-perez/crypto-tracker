@@ -54,7 +54,8 @@ export default async function CoinDetailPage({
   const currentPrice = coin.market_data.current_price.usd;
   let recommendation = "Neutral";
   let diffPercent = 0;
-
+  const amountToConvert = 1; 
+  const convertedValue = amountToConvert * currentPrice;
   if (history && history.length > 0) {
     const avgPrice = history.reduce((a: number, b: number) => a + b, 0) / history.length;
     diffPercent = ((currentPrice - avgPrice) / avgPrice) * 100;
