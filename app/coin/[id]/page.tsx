@@ -121,7 +121,7 @@ export default async function CoinDetailPage({
                 >
                   {recommendation}
                 </div>
-                <div className="mt-6 p-4 bg-slate-800/50 rounded-xl border border-slate-700">
+                <div className="bg-linear-to-br from-slate-800 to-slate-900 border border-blue-500/20 shadow-xl shadow-blue-500/5 p-6 rounded-2xl">
                   <h3 className="text-sm font-medium text-slate-400 mb-2">
                     Quick Converter
                     <input
