@@ -55,6 +55,7 @@ export default async function CoinDetailPage({
   let diffPercent = 0;
   const amountToConvert = 1;
   const convertedValue = amountToConvert * currentPrice;
+  const oneDollarInCoin = currentPrice / 1; // כמה יחידות של המטבע שווה 1 דולר
 
   if (history && history.length > 0) {
     const avgPrice =
@@ -123,8 +124,17 @@ export default async function CoinDetailPage({
                 <div className="mt-6 p-4 bg-slate-800/50 rounded-xl border border-slate-700">
                   <h3 className="text-sm font-medium text-slate-400 mb-2">
                     Quick Converter
-                    <input type="number" defaultValue={amountToConvert}  className= "w-24 bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white mr-2"/>
+                    <input
+                      type="number"
+                      defaultValue={amountToConvert}
+                      className="w-24 bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white mr-2"
+                    />
+                    <p className="text-xs text-slate-500 mt-2 italic">
+                      1 USD = {oneDollarInCoin.toFixed(8)}{" "}
+                      {coin.symbol.toUpperCase()}
+                    </p>
                   </h3>
+
                   <p className="text-xl font-mono text-white">
                     {amountToConvert} {coin.symbol.toUpperCase()} =
                     <span className="text-blue-400 ml-2">
