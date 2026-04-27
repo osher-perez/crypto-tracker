@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
+import Converter from "./Converter";
 
 // פונקציה למשיכת נתונים כלליים על המטבע
 async function getCoinData(id: string) {
@@ -53,9 +54,6 @@ export default async function CoinDetailPage({
   const currentPrice = coin.market_data.current_price.usd;
   let recommendation = "Neutral";
   let diffPercent = 0;
-  const amountToConvert = 1;
-  const convertedValue = amountToConvert * currentPrice;
-  const oneDollarInCoin = currentPrice / 1; // כמה יחידות של המטבע שווה 1 דולר
 
   if (history && history.length > 0) {
     const avgPrice =
@@ -121,27 +119,10 @@ export default async function CoinDetailPage({
                 >
                   {recommendation}
                 </div>
-                <div className="bg-linear-to-br from-slate-800 to-slate-900 border border-blue-500/20 shadow-xl shadow-blue-500/5 p-6 rounded-2xl">
-                  <h3 className="text-sm font-medium text-slate-400 mb-2">
-                    Quick Converter
-                    <input
-                      type="number"
-                      defaultValue={amountToConvert}
-                      className="w-24 bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white mr-2"
-                    />
-                    <p className="text-xs text-slate-500 mt-2 italic">
-                      1 USD = {oneDollarInCoin.toFixed(8)}{" "}
-                      {coin.symbol.toUpperCase()}
-                    </p>
-                  </h3>
-
-                  <p className="text-xl font-mono text-white">
-                    {amountToConvert} {coin.symbol.toUpperCase()} =
-                    <span className="text-blue-400 ml-2">
-                      ${convertedValue.toLocaleString()}
-                    </span>
-                  </p>
-                </div>
+                <Converter
+                  price={coin.market_data.current_price.usd}
+                  symbol={coin.symbol}
+                />
                 <p className="text-slate-400 text-sm leading-relaxed">
                   Price is{" "}
                   <span className="text-white font-bold">

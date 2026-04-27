@@ -5,10 +5,9 @@ export default function Converter({
   price,
   symbol,
 }: {
-  price: number; // שים לב: שיניתי ל-number כדי שנוכל להכפיל
+  price: number;
   symbol: string;
 }) {
-  // המשתנים חייבים להיות כאן בפנים!
   const [amount, setAmount] = useState(1);
   const totalPrice = amount * price;
 
@@ -17,12 +16,22 @@ export default function Converter({
       <div className="flex items-center gap-2 mb-4">
         <input
           type="number"
+          min="0"
+          step="any"
           value={amount}
-          onChange={(e) => setAmount(Number(e.target.value))}
-          className="w-full bg-slate-900 border border-slate-600 p-2 rounded text-white text-left"
+          onChange={(e) => {
+            const val = Number(e.target.value);
+            // אם המשתמש מוחק הכל, נשים 0 כדי שלא ייוצר NaN (Not a Number)
+            setAmount(val >= 0 ? val : 0);
+          }}
+          /* כאן הוספתי את הקלאסים המיוחדים של Tailwind שמעלימים את החצים */
+          className="w-full bg-slate-900 border border-slate-600 p-2 rounded text-white text-left 
+                     [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none 
+                     [&::-webkit-inner-spin-button]:appearance-none"
         />
         <span className="font-bold text-blue-400">{symbol.toUpperCase()}</span>
       </div>
+      
       <p className="text-lg">
         שווה ל:{" "}
         <span className="text-green-400 font-mono">
